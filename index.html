@@ -57,7 +57,6 @@
       border-color: rgba(40, 167, 69, 0.5);
     }
 
-    /* Menú de opciones (Tres Puntos) */
     .card-menu-btn {
       position: absolute;
       top: 10px;
@@ -259,7 +258,6 @@
 
   <button class="add-btn" id="openModalBtn" title="Añadir Skin">+</button>
 
-  <!-- Modal / Formulario -->
   <div class="modal" id="skinModal">
     <div class="modal-content">
       <h2 id="modalTitle">Añadir Nueva Skin</h2>
@@ -276,7 +274,7 @@
           <input type="file" id="skinImage" accept="image/*">
         </div>
         <div class="form-group">
-          <label>Código de  Skin (Evrima)</label>
+          <label>Código de la Skin (Evrima)</label>
           <textarea id="skinCode" placeholder="Pega el código del juego..." required></textarea>
         </div>
         <div class="modal-actions">
@@ -287,16 +285,14 @@
     </div>
   </div>
 
-  <!-- SDKs de Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-    // 🔑 CLAVE SECRETA PARA EDITAR / ELIMINAR (Cámbiala por la que tú quieras)
-    const ADMIN_PIN = "12134"; 
+    // 🔑 CLAVE SECRETA
+    const ADMIN_PIN = "1234"; 
     
-    // Imagen por defecto si no subes foto
+    // Imagen por defecto
     const DEFAULT_IMAGE = "https://via.placeholder.com/300x160/111115/888888?text=Sin+Foto";
 
     const firebaseConfig = {
@@ -311,7 +307,6 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
     const modal = document.getElementById('skinModal');
     const openModalBtn = document.getElementById('openModalBtn');
@@ -321,7 +316,6 @@
     const saveBtn = document.getElementById('saveBtn');
     const modalTitle = document.getElementById('modalTitle');
 
-    // Generador de sonido "Tic"
     const playTicSound = () => {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const osc = audioCtx.createOscillator();
@@ -391,7 +385,6 @@
       });
     });
 
-    // Desplegar menú de 3 puntos
     window.toggleMenu = (id) => {
       const dropdown = document.getElementById(`menu-${id}`);
       const isVisible = dropdown.style.display === 'block';
@@ -399,14 +392,12 @@
       dropdown.style.display = isVisible ? 'none' : 'block';
     };
 
-    // Cerrar menús al hacer clic fuera
     document.addEventListener('click', (e) => {
       if (!e.target.classList.contains('card-menu-btn')) {
         document.querySelectorAll('.card-menu-dropdown').forEach(d => d.style.display = 'none');
       }
     });
 
-    // Función para Editar
     window.editSkin = (id, title, code, imageUrl) => {
       const pass = prompt("Introduce tu clave para editar:");
       if (pass !== ADMIN_PIN) return alert("Clave incorrecta.");
@@ -420,7 +411,6 @@
       modal.style.display = 'flex';
     };
 
-    // Función para Eliminar
     window.deleteSkin = async (id) => {
       const pass = prompt("Introduce tu clave para eliminar:");
       if (pass !== ADMIN_PIN) return alert("Clave incorrecta.");
@@ -434,7 +424,32 @@
       }
     };
 
-    // Guardar (Crear o Actualizar)
+    // Compresión ligera de imagen
+    const compressImage = (file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxWidth = 600;
+            const scale = maxWidth / img.width;
+            canvas.width = maxWidth;
+            canvas.height = img.height * scale;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          };
+          img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+      });
+    };
+
+    // Guardar rápido con compresión
     skinForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -448,11 +463,8 @@
       try {
         let imageUrl = document.getElementById('existingImageUrl').value || DEFAULT_IMAGE;
 
-        // Subir foto nueva solo si seleccionó un archivo
         if (file) {
-          const storageRef = ref(storage, 'skins/' + Date.now() + '_' + file.name);
-          await uploadBytes(storageRef, file);
-          imageUrl = await getDownloadURL(storageRef);
+          imageUrl = await compressImage(file);
         }
 
         const skinData = {
@@ -462,10 +474,8 @@
         };
 
         if (editingId) {
-          // Actualizar skin existente
           await updateDoc(doc(db, "skins", editingId), skinData);
         } else {
-          // Crear skin nueva
           skinData.createdAt = new Date();
           await addDoc(collection(db, "skins"), skinData);
         }
@@ -473,8 +483,8 @@
         skinForm.reset();
         modal.style.display = 'none';
       } catch (error) {
-        console.error("Error:", error);
-        alert("Ocurrió un error al guardar.");
+        console.error("Error al guardar:", error);
+        alert("Ocurrió un error al guardar la skin.");
       } finally {
         saveBtn.innerText = "Guardar Skin";
         saveBtn.disabled = false;
