@@ -19,17 +19,8 @@
       min-height: 100vh;
     }
 
-    header { 
-      text-align: center; 
-      margin-bottom: 40px; 
-    }
-    h1 { 
-      font-size: 2.2rem; 
-      font-weight: 700;
-      text-transform: uppercase; 
-      letter-spacing: 2px; 
-      color: #ffffff;
-    }
+    header { text-align: center; margin-bottom: 40px; }
+    h1 { font-size: 2.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #ffffff; }
 
     .grid { 
       display: grid; 
@@ -42,7 +33,6 @@
     .card { 
       background: rgba(25, 25, 30, 0.55); 
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border-radius: 16px; 
       overflow: hidden; 
       border: 1px solid rgba(255, 255, 255, 0.1); 
@@ -52,10 +42,7 @@
       transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s;
     }
 
-    .card:hover {
-      transform: scale(1.03);
-      border-color: rgba(40, 167, 69, 0.5);
-    }
+    .card:hover { transform: scale(1.03); border-color: rgba(40, 167, 69, 0.5); }
 
     .card-menu-btn {
       position: absolute;
@@ -107,29 +94,11 @@
     .card-menu-dropdown button:hover { background: rgba(255, 255, 255, 0.1); }
     .card-menu-dropdown button.delete-btn:hover { background: rgba(220, 53, 69, 0.3); color: #ff6b6b; }
 
-    .card img { 
-      width: 100%; 
-      height: 160px; 
-      object-fit: cover; 
-      background: #111; 
-    }
+    .card img { width: 100%; height: 160px; object-fit: cover; background: #111; }
 
-    .info { 
-      padding: 16px; 
-      flex-grow: 1; 
-      display: flex; 
-      flex-direction: column; 
-      justify-content: space-between; 
-    }
+    .info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
 
-    .title { 
-      font-weight: 600; 
-      font-size: 1.05rem; 
-      margin-bottom: 12px; 
-      text-transform: uppercase; 
-      color: #ffffff; 
-      text-align: center;
-    }
+    .title { font-weight: 600; font-size: 1.05rem; margin-bottom: 12px; text-transform: uppercase; color: #ffffff; text-align: center; }
 
     .copy-btn { 
       width: 100%; 
@@ -144,10 +113,7 @@
       transition: all 0.2s; 
     }
 
-    .copy-btn:hover { 
-      background: #28a745; 
-      border-color: #28a745; 
-    }
+    .copy-btn:hover { background: #28a745; border-color: #28a745; }
 
     .add-btn { 
       position: fixed;
@@ -169,10 +135,7 @@
       z-index: 99;
     }
 
-    .add-btn:hover { 
-      transform: scale(1.2); 
-      background: #218838;
-    }
+    .add-btn:hover { transform: scale(1.2); background: #218838; }
 
     .modal { 
       display: none; 
@@ -198,12 +161,7 @@
       border: 1px solid rgba(255, 255, 255, 0.12); 
     }
 
-    .modal-content h2 { 
-      margin-bottom: 20px; 
-      font-size: 1.3rem; 
-      font-weight: 600;
-      text-align: center;
-    }
+    .modal-content h2 { margin-bottom: 20px; font-size: 1.3rem; font-weight: 600; text-align: center; }
 
     .form-group { margin-bottom: 18px; }
     .form-group label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 6px; }
@@ -289,10 +247,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 🔑 CLAVE SECRETA
     const ADMIN_PIN = "1234"; 
-    
-    // Imagen por defecto
     const DEFAULT_IMAGE = "https://via.placeholder.com/300x160/111115/888888?text=Sin+Foto";
 
     const firebaseConfig = {
@@ -316,21 +271,6 @@
     const saveBtn = document.getElementById('saveBtn');
     const modalTitle = document.getElementById('modalTitle');
 
-    const playTicSound = () => {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.05);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.05);
-    };
-
-    openModalBtn.addEventListener('mouseenter', playTicSound);
     openModalBtn.addEventListener('click', () => {
       skinForm.reset();
       document.getElementById('editingSkinId').value = '';
@@ -341,7 +281,7 @@
 
     closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
 
-    // Cargar skins en tiempo real
+    // Cargar skins
     const q = query(collection(db, "skins"), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
       skinsContainer.innerHTML = '';
@@ -424,32 +364,23 @@
       }
     };
 
-    // Compresión ligera de imagen
-    const compressImage = (file) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (e) => {
-          const img = new Image();
-          img.src = e.target.result;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const maxWidth = 600;
-            const scale = maxWidth / img.width;
-            canvas.width = maxWidth;
-            canvas.height = img.height * scale;
-
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', 0.7));
-          };
-          img.onerror = (err) => reject(err);
-        };
-        reader.onerror = (err) => reject(err);
+    // Subir imagen a un servidor público rápido (ImgBB API)
+    const uploadToImgBB = async (file) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch('https://api.imgbb.com/1/upload?key=c6b7582b13dbd7675e81f1e9e8be34d5', {
+        method: 'POST',
+        body: formData
       });
+      const data = await res.json();
+      if (data.success) {
+        return data.data.url;
+      } else {
+        throw new Error("Error al subir imagen");
+      }
     };
 
-    // Guardar rápido con compresión
+    // Guardado ULTRA RÁPIDO
     skinForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -457,15 +388,17 @@
       const fileInput = document.getElementById('skinImage');
       const file = fileInput.files[0];
       
-      saveBtn.innerText = "Guardando...";
+      saveBtn.innerText = "Subiendo...";
       saveBtn.disabled = true;
 
       try {
         let imageUrl = document.getElementById('existingImageUrl').value || DEFAULT_IMAGE;
 
         if (file) {
-          imageUrl = await compressImage(file);
+          imageUrl = await uploadToImgBB(file);
         }
+
+        saveBtn.innerText = "Guardando...";
 
         const skinData = {
           title: document.getElementById('skinTitle').value,
@@ -484,7 +417,7 @@
         modal.style.display = 'none';
       } catch (error) {
         console.error("Error al guardar:", error);
-        alert("Ocurrió un error al guardar la skin.");
+        alert("Ocurrió un error al guardar la skin. Verifica las Reglas de Firestore.");
       } finally {
         saveBtn.innerText = "Guardar Skin";
         saveBtn.disabled = false;
