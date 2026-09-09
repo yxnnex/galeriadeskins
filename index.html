@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Evrima Skins Index</title>
+  <style>
+    body { background-color: #0f0f11; color: #fff; font-family: sans-serif; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
+    .card { background: #18181c; border-radius: 8px; overflow: hidden; border: 1px solid #2a2a30; }
+    .card img { width: 100%; height: 140px; object-fit: cover; background: #000; }
+    .info { padding: 12px; }
+    .title { font-weight: bold; font-size: 1rem; margin-bottom: 4px; text-transform: uppercase; }
+    .author { font-size: 0.8rem; color: #888; margin-bottom: 12px; }
+    .copy-btn { width: 100%; padding: 8px; background: #25252b; border: 1px solid #3a3a42; color: #fff; cursor: pointer; border-radius: 4px; }
+    .copy-btn:hover { background: #32323a; }
+  </style>
+</head>
+<body>
+
+  <div class="grid">
+    <!-- Ejemplo de tarjeta -->
+    <div class="card">
+      <img src="URL_DE_TU_IMAGEN.png" alt="Skin Preview">
+      <div class="info">
+        <div class="title">BLOOD DEVIL</div>
+        <div class="author">by Spezi</div>
+        <button class="copy-btn" onclick="copySkin('AQUÍ_VA_EL_CÓDIGO_DE_LA_SKIN', this)">Copy Code</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function copySkin(code, button) {
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.innerText;
+        button.innerText = '¡Copiado!';
+        setTimeout(() => button.innerText = originalText, 1500);
+      });
+    }
+  </script>
+</body>
+</html>
