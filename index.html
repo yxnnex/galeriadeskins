@@ -11,11 +11,9 @@
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 1px solid #2a2a30; }
     h1 { font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
     
-    /* Botón + */
     .add-btn { background: #007acc; color: #fff; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
     .add-btn:hover { background: #005999; }
 
-    /* Grilla de Skins */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
     .card { background: #18181c; border-radius: 8px; overflow: hidden; border: 1px solid #2a2a30; display: flex; flex-direction: column; }
     .card img { width: 100%; height: 150px; object-fit: cover; background: #000; }
@@ -25,7 +23,6 @@
     .copy-btn { width: 100%; padding: 8px; background: #25252b; border: 1px solid #3a3a42; color: #fff; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
     .copy-btn:hover { background: #32323a; border-color: #007acc; }
 
-    /* Modal / Pestaña emergente */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
     .modal-content { background: #18181c; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; border: 1px solid #2a2a30; }
     .modal-content h2 { margin-bottom: 15px; font-size: 1.2rem; }
@@ -36,6 +33,7 @@
     .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
     .btn-cancel { background: #3a3a42; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
     .btn-save { background: #007acc; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+    .loading-msg { text-align: center; color: #aaa; grid-column: 1 / -1; }
   </style>
 </head>
 <body>
@@ -46,10 +44,10 @@
   </header>
 
   <div class="grid" id="skinsContainer">
-    <!-- Las tarjetas subidas se mostrarán aquí -->
+    <div class="loading-msg">Cargando skins...</div>
   </div>
 
-  <!-- Pestaña flotante (Modal) -->
+  <!-- Modal / Formulario -->
   <div class="modal" id="skinModal">
     <div class="modal-content">
       <h2>Añadir Nueva Skin</h2>
@@ -68,93 +66,127 @@
         </div>
         <div class="form-group">
           <label>Código de la Skin (Evrima)</label>
-          <textarea id="skinCode" placeholder="Pega el código generado por el juego..." required></textarea>
+          <textarea id="skinCode" placeholder="Pega el código del juego..." required></textarea>
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" id="closeModalBtn">Cancelar</button>
-          <button type="submit" class="btn-save">Guardar Skin</button>
+          <button type="submit" class="btn-save" id="saveBtn">Guardar Skin</button>
         </div>
       </form>
     </div>
   </div>
 
-  <script>
+  <!-- SDKs de Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+    // Configuracion de tu proyecto Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpy6CtKqXbqPUhuyVRv6NvQZkwfv-i5U4",
+      authDomain: "evrima-skins.firebaseapp.com",
+      projectId: "evrima-skins",
+      storageBucket: "evrima-skins.firebasestorage.app",
+      messagingSenderId: "514495308445",
+      appId: "1:514495308445:web:28fb51497dc6c9e8c32a74",
+      measurementId: "G-Y374SVYG8V"
+    };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Elementos del DOM
     const modal = document.getElementById('skinModal');
     const openModalBtn = document.getElementById('openModalBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const skinForm = document.getElementById('skinForm');
     const skinsContainer = document.getElementById('skinsContainer');
+    const saveBtn = document.getElementById('saveBtn');
 
-    // Abrir y Cerrar Modal
     openModalBtn.addEventListener('click', () => modal.style.display = 'flex');
     closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
 
-    // Guardar Skins en el navegador
-    let skins = JSON.parse(localStorage.getItem('evrimaSkins')) || [];
-
-    function renderSkins() {
+    // Cargar skins en tiempo real desde la nube
+    const q = query(collection(db, "skins"), orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
       skinsContainer.innerHTML = '';
-      skins.forEach((skin, index) => {
+      if(snapshot.empty) {
+        skinsContainer.innerHTML = '<div class="loading-msg">No hay skins publicadas aún.</div>';
+        return;
+      }
+      
+      snapshot.forEach((doc) => {
+        const skin = doc.data();
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <img src="${skin.image}" alt="${skin.title}">
+          <img src="${skin.imageUrl}" alt="${skin.title}">
           <div class="info">
             <div>
               <div class="title">${skin.title}</div>
               <div class="author">by ${skin.author}</div>
             </div>
-            <button class="copy-btn" onclick="copyCode('${encodeURIComponent(skin.code)}', this)">Copy Code</button>
+            <button class="copy-btn">Copy Code</button>
           </div>
         `;
+
+        // Evento del botón copiar
+        const copyBtn = card.querySelector('.copy-btn');
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(skin.code).then(() => {
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = '¡Copiado!';
+            copyBtn.style.background = '#28a745';
+            setTimeout(() => {
+              copyBtn.innerText = originalText;
+              copyBtn.style.background = '#25252b';
+            }, 1500);
+          });
+        });
+
         skinsContainer.appendChild(card);
       });
-    }
+    });
 
-    // Procesar envío del formulario
-    skinForm.addEventListener('submit', (e) => {
+    // Subir nueva skin a la nube
+    skinForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const fileInput = document.getElementById('skinImage');
       const file = fileInput.files[0];
-      
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const newSkin = {
-            title: document.getElementById('skinTitle').value,
-            author: document.getElementById('skinAuthor').value,
-            code: document.getElementById('skinCode').value,
-            image: e.target.result // Convierte la imagen a formato para almacenamiento local
-          };
+      if (!file) return;
 
-          skins.push(newSkin);
-          localStorage.setItem('evrimaSkins', JSON.stringify(skins));
-          renderSkins();
-          
-          skinForm.reset();
-          modal.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
+      saveBtn.innerText = "Subiendo...";
+      saveBtn.disabled = true;
+
+      try {
+        // 1. Subir imagen a Firebase Storage
+        const storageRef = ref(storage, 'skins/' + Date.now() + '_' + file.name);
+        await uploadBytes(storageRef, file);
+        const imageUrl = await getDownloadURL(storageRef);
+
+        // 2. Guardar datos en Firestore
+        await addDoc(collection(db, "skins"), {
+          title: document.getElementById('skinTitle').value,
+          author: document.getElementById('skinAuthor').value,
+          code: document.getElementById('skinCode').value,
+          imageUrl: imageUrl,
+          createdAt: new Date()
+        });
+
+        skinForm.reset();
+        modal.style.display = 'none';
+      } catch (error) {
+        console.error("Error al subir:", error);
+        alert("Error al subir la skin. Asegúrate de haber habilitado Firestore y Storage en Modo Prueba.");
+      } finally {
+        saveBtn.innerText = "Guardar Skin";
+        saveBtn.disabled = false;
       }
     });
-
-    // Función de Copiar Código
-    function copyCode(encodedCode, button) {
-      const code = decodeURIComponent(encodedCode);
-      navigator.clipboard.writeText(code).then(() => {
-        const originalText = button.innerText;
-        button.innerText = '¡Copiado!';
-        button.style.background = '#28a745';
-        setTimeout(() => {
-          button.innerText = originalText;
-          button.style.background = '#25252b';
-        }, 1500);
-      });
-    }
-
-    // Cargar tarjetas iniciales
-    renderSkins();
   </script>
 </body>
 </html>
