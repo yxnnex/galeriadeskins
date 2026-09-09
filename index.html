@@ -4,48 +4,216 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mis skins</title>
+  <!-- Fuente tipográfica moderna -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: #0f0f11; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
     
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 1px solid #2a2a30; }
-    h1 { font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
+    body { 
+      background-color: #000000; 
+      color: #ffffff; 
+      font-family: 'Poppins', sans-serif; 
+      padding: 30px 20px;
+      min-height: 100vh;
+    }
+
+    /* Título Centrado */
+    header { 
+      text-align: center; 
+      margin-bottom: 40px; 
+    }
+    h1 { 
+      font-size: 2.2rem; 
+      font-weight: 700;
+      text-transform: uppercase; 
+      letter-spacing: 2px; 
+      color: #ffffff;
+    }
+
+    /* Grilla de Galería */
+    .grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+      gap: 25px; 
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* UI Transparente Cuadriculada (Glassmorphism) con esquinas redondeadas */
+    .card { 
+      background: rgba(25d, 25, 30, 0.55); 
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 16px; 
+      overflow: hidden; 
+      border: 1px solid rgba(255, 255, 255, 0.1); 
+      display: flex; 
+      flex-direction: column;
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s;
+    }
+
+    /* Animación al pasar el mouse por la tarjeta */
+    .card:hover {
+      transform: scale(1.05);
+      border-color: rgba(40, 167, 69, 0.5);
+    }
+
+    .card img { 
+      width: 100%; 
+      height: 160px; 
+      object-fit: cover; 
+      background: #000000; 
+    }
+
+    .info { 
+      padding: 16px; 
+      flex-grow: 1; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: space-between; 
+    }
+
+    .title { 
+      font-weight: 600; 
+      font-size: 1.05rem; 
+      margin-bottom: 12px; 
+      text-transform: uppercase; 
+      color: #ffffff; 
+      text-align: center;
+    }
+
+    .copy-btn { 
+      width: 100%; 
+      padding: 10px; 
+      background: rgba(255, 255, 255, 0.08); 
+      border: 1px solid rgba(255, 255, 255, 0.15); 
+      color: #ffffff; 
+      cursor: pointer; 
+      border-radius: 10px; 
+      font-weight: 600; 
+      font-family: inherit;
+      transition: all 0.2s; 
+    }
+
+    .copy-btn:hover { 
+      background: #28a745; 
+      border-color: #28a745; 
+    }
+
+    /* Botón Flotante + en forma de burbuja */
+    .add-btn { 
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #28a745; 
+      color: #ffffff; 
+      border: none; 
+      width: 60px; 
+      height: 60px; 
+      border-radius: 50%; 
+      font-size: 32px; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      box-shadow: 0 8px 24px rgba(40, 167, 69, 0.4);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s;
+      z-index: 99;
+    }
+
+    .add-btn:hover { 
+      transform: scale(1.2); 
+      background: #218838;
+    }
+
+    /* Modal / Ventana Transparente */
+    .modal { 
+      display: none; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0, 0, 0, 0.75); 
+      backdrop-filter: blur(8px);
+      justify-content: center; 
+      align-items: center; 
+      z-index: 100; 
+    }
+
+    .modal-content { 
+      background: rgba(20, 20, 25, 0.85); 
+      backdrop-filter: blur(16px);
+      padding: 30px; 
+      border-radius: 20px; 
+      width: 90%; 
+      max-width: 420px; 
+      border: 1px solid rgba(255, 255, 255, 0.12); 
+    }
+
+    .modal-content h2 { 
+      margin-bottom: 20px; 
+      font-size: 1.3rem; 
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 6px; }
     
-    .add-btn { background: #007acc; color: #fff; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-    .add-btn:hover { background: #005999; }
+    .form-group input, .form-group textarea { 
+      width: 100%; 
+      padding: 10px; 
+      background: rgba(0, 0, 0, 0.5); 
+      border: 1px solid rgba(255, 255, 255, 0.15); 
+      color: #fff; 
+      border-radius: 10px; 
+      font-family: inherit; 
+    }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-    .card { background: #18181c; border-radius: 8px; overflow: hidden; border: 1px solid #2a2a30; display: flex; flex-direction: column; }
-    .card img { width: 100%; height: 150px; object-fit: cover; background: #000; }
-    .info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-    .title { font-weight: bold; font-size: 1rem; margin-bottom: 4px; text-transform: uppercase; color: #fff; }
-    .author { font-size: 0.8rem; color: #888; margin-bottom: 12px; }
-    .copy-btn { width: 100%; padding: 8px; background: #25252b; border: 1px solid #3a3a42; color: #fff; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
-    .copy-btn:hover { background: #32323a; border-color: #007acc; }
+    .form-group textarea { resize: vertical; height: 70px; }
 
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
-    .modal-content { background: #18181c; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; border: 1px solid #2a2a30; }
-    .modal-content h2 { margin-bottom: 15px; font-size: 1.2rem; }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 5px; }
-    .form-group input, .form-group textarea { width: 100%; padding: 8px; background: #0f0f11; border: 1px solid #3a3a42; color: #fff; border-radius: 4px; font-family: inherit; }
-    .form-group textarea { resize: vertical; height: 60px; }
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-    .btn-cancel { background: #3a3a42; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
-    .btn-save { background: #007acc; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
-    .loading-msg { text-align: center; color: #aaa; grid-column: 1 / -1; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 22px; }
+    
+    .btn-cancel { 
+      background: rgba(255, 255, 255, 0.1); 
+      color: #fff; 
+      border: none; 
+      padding: 10px 18px; 
+      border-radius: 10px; 
+      cursor: pointer; 
+      font-family: inherit;
+    }
+
+    .btn-save { 
+      background: #28a745; 
+      color: #fff; 
+      border: none; 
+      padding: 10px 18px; 
+      border-radius: 10px; 
+      cursor: pointer; 
+      font-weight: 600;
+      font-family: inherit;
+    }
+
+    .loading-msg { text-align: center; color: #888; grid-column: 1 / -1; margin-top: 40px; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Evrima Skins Index</h1>
-    <button class="add-btn" id="openModalBtn" title="Añadir Skin">+</button>
+    <h1>Mis skins</h1>
   </header>
 
   <div class="grid" id="skinsContainer">
     <div class="loading-msg">Cargando skins...</div>
   </div>
+
+  <!-- Botón Burbuja Flotante (+) -->
+  <button class="add-btn" id="openModalBtn" title="Añadir Skin">+</button>
 
   <!-- Modal / Formulario -->
   <div class="modal" id="skinModal">
@@ -55,10 +223,6 @@
         <div class="form-group">
           <label>Nombre de la Skin</label>
           <input type="text" id="skinTitle" placeholder="Ej: Blood Devil" required>
-        </div>
-        <div class="form-group">
-          <label>Creador / Referencia</label>
-          <input type="text" id="skinAuthor" placeholder="Ej: Spezi" required>
         </div>
         <div class="form-group">
           <label>Foto de la Skin</label>
@@ -98,7 +262,7 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // Elementos del DOM
+    // Elementos DOM
     const modal = document.getElementById('skinModal');
     const openModalBtn = document.getElementById('openModalBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
@@ -106,10 +270,26 @@
     const skinsContainer = document.getElementById('skinsContainer');
     const saveBtn = document.getElementById('saveBtn');
 
+    // Generador de sonido "Tic" al pasar el mouse por el botón +
+    const playTicSound = () => {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.05);
+    };
+
+    openModalBtn.addEventListener('mouseenter', playTicSound);
     openModalBtn.addEventListener('click', () => modal.style.display = 'flex');
     closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
 
-    // Cargar skins en tiempo real desde la nube
+    // Cargar skins desde Firestore
     const q = query(collection(db, "skins"), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
       skinsContainer.innerHTML = '';
@@ -125,15 +305,12 @@
         card.innerHTML = `
           <img src="${skin.imageUrl}" alt="${skin.title}">
           <div class="info">
-            <div>
-              <div class="title">${skin.title}</div>
-              <div class="author">by ${skin.author}</div>
-            </div>
+            <div class="title">${skin.title}</div>
             <button class="copy-btn">Copy Code</button>
           </div>
         `;
 
-        // Evento del botón copiar
+        // Evento botón copiar
         const copyBtn = card.querySelector('.copy-btn');
         copyBtn.addEventListener('click', () => {
           navigator.clipboard.writeText(skin.code).then(() => {
@@ -142,7 +319,7 @@
             copyBtn.style.background = '#28a745';
             setTimeout(() => {
               copyBtn.innerText = originalText;
-              copyBtn.style.background = '#25252b';
+              copyBtn.style.background = 'rgba(255, 255, 255, 0.08)';
             }, 1500);
           });
         });
@@ -151,7 +328,7 @@
       });
     });
 
-    // Subir nueva skin a la nube
+    // Subir skin
     skinForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -163,15 +340,12 @@
       saveBtn.disabled = true;
 
       try {
-        // 1. Subir imagen a Firebase Storage
         const storageRef = ref(storage, 'skins/' + Date.now() + '_' + file.name);
         await uploadBytes(storageRef, file);
         const imageUrl = await getDownloadURL(storageRef);
 
-        // 2. Guardar datos en Firestore
         await addDoc(collection(db, "skins"), {
           title: document.getElementById('skinTitle').value,
-          author: document.getElementById('skinAuthor').value,
           code: document.getElementById('skinCode').value,
           imageUrl: imageUrl,
           createdAt: new Date()
@@ -181,7 +355,7 @@
         modal.style.display = 'none';
       } catch (error) {
         console.error("Error al subir:", error);
-        alert("Error al subir la skin. Asegúrate de haber habilitado Firestore y Storage en Modo Prueba.");
+        alert("Error al subir la skin.");
       } finally {
         saveBtn.innerText = "Guardar Skin";
         saveBtn.disabled = false;
