@@ -281,7 +281,7 @@
 
     closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
 
-    // Cargar skins
+    // Cargar skins desde Firestore
     const q = query(collection(db, "skins"), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
       skinsContainer.innerHTML = '';
@@ -298,7 +298,7 @@
         card.innerHTML = `
           <button class="card-menu-btn" onclick="toggleMenu('${id}')">⋮</button>
           <div class="card-menu-dropdown" id="menu-${id}">
-            <button onclick="editSkin('${id}', \`${skin.title}\`, \`${skin.code}\`, '${skin.imageUrl}')">Editar</button>
+            <button onclick="editSkin('${id}', \`${skin.title}\`, \`${skin.code}\`, '${skin.imageUrl || ''}')">Editar</button>
             <button class="delete-btn" onclick="deleteSkin('${id}')">Eliminar</button>
           </div>
           <img src="${skin.imageUrl || DEFAULT_IMAGE}" alt="${skin.title}">
@@ -364,23 +364,30 @@
       }
     };
 
-    // Subir imagen a un servidor público rápido (ImgBB API)
-    const uploadToImgBB = async (file) => {
-      const formData = new FormData();
-      formData.append('image', file);
-      const res = await fetch('https://api.imgbb.com/1/upload?key=c6b7582b13dbd7675e81f1e9e8be34d5', {
-        method: 'POST',
-        body: formData
+    // Redimensionar e imágen ultra liviana en el navegador
+    const compressImage = (file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 400;
+            const scaleSize = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scaleSize;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.5)); // Compresión óptima
+          };
+        };
       });
-      const data = await res.json();
-      if (data.success) {
-        return data.data.url;
-      } else {
-        throw new Error("Error al subir imagen");
-      }
     };
 
-    // Guardado ULTRA RÁPIDO
+    // Guardado directo en Firestore
     skinForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -388,17 +395,15 @@
       const fileInput = document.getElementById('skinImage');
       const file = fileInput.files[0];
       
-      saveBtn.innerText = "Subiendo...";
+      saveBtn.innerText = "Guardando...";
       saveBtn.disabled = true;
 
       try {
         let imageUrl = document.getElementById('existingImageUrl').value || DEFAULT_IMAGE;
 
         if (file) {
-          imageUrl = await uploadToImgBB(file);
+          imageUrl = await compressImage(file);
         }
-
-        saveBtn.innerText = "Guardando...";
 
         const skinData = {
           title: document.getElementById('skinTitle').value,
@@ -417,7 +422,7 @@
         modal.style.display = 'none';
       } catch (error) {
         console.error("Error al guardar:", error);
-        alert("Ocurrió un error al guardar la skin. Verifica las Reglas de Firestore.");
+        alert("Error de conexión al guardar: " + error.message);
       } finally {
         saveBtn.innerText = "Guardar Skin";
         saveBtn.disabled = false;
