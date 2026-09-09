@@ -2,41 +2,159 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Evrima Skins Index</title>
   <style>
-    body { background-color: #0f0f11; color: #fff; font-family: sans-serif; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px; }
-    .card { background: #18181c; border-radius: 8px; overflow: hidden; border: 1px solid #2a2a30; }
-    .card img { width: 100%; height: 140px; object-fit: cover; background: #000; }
-    .info { padding: 12px; }
-    .title { font-weight: bold; font-size: 1rem; margin-bottom: 4px; text-transform: uppercase; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: #0f0f11; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 1px solid #2a2a30; }
+    h1 { font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
+    
+    /* Botón + */
+    .add-btn { background: #007acc; color: #fff; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .add-btn:hover { background: #005999; }
+
+    /* Grilla de Skins */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+    .card { background: #18181c; border-radius: 8px; overflow: hidden; border: 1px solid #2a2a30; display: flex; flex-direction: column; }
+    .card img { width: 100%; height: 150px; object-fit: cover; background: #000; }
+    .info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .title { font-weight: bold; font-size: 1rem; margin-bottom: 4px; text-transform: uppercase; color: #fff; }
     .author { font-size: 0.8rem; color: #888; margin-bottom: 12px; }
-    .copy-btn { width: 100%; padding: 8px; background: #25252b; border: 1px solid #3a3a42; color: #fff; cursor: pointer; border-radius: 4px; }
-    .copy-btn:hover { background: #32323a; }
+    .copy-btn { width: 100%; padding: 8px; background: #25252b; border: 1px solid #3a3a42; color: #fff; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+    .copy-btn:hover { background: #32323a; border-color: #007acc; }
+
+    /* Modal / Pestaña emergente */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
+    .modal-content { background: #18181c; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; border: 1px solid #2a2a30; }
+    .modal-content h2 { margin-bottom: 15px; font-size: 1.2rem; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 5px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 8px; background: #0f0f11; border: 1px solid #3a3a42; color: #fff; border-radius: 4px; font-family: inherit; }
+    .form-group textarea { resize: vertical; height: 60px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .btn-cancel { background: #3a3a42; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+    .btn-save { background: #007acc; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <div class="grid">
-    <!-- Ejemplo de tarjeta -->
-    <div class="card">
-      <img src="URL_DE_TU_IMAGEN.png" alt="Skin Preview">
-      <div class="info">
-        <div class="title">BLOOD DEVIL</div>
-        <div class="author">by Spezi</div>
-        <button class="copy-btn" onclick="copySkin('AQUÍ_VA_EL_CÓDIGO_DE_LA_SKIN', this)">Copy Code</button>
-      </div>
+  <header>
+    <h1>Evrima Skins Index</h1>
+    <button class="add-btn" id="openModalBtn" title="Añadir Skin">+</button>
+  </header>
+
+  <div class="grid" id="skinsContainer">
+    <!-- Las tarjetas subidas se mostrarán aquí -->
+  </div>
+
+  <!-- Pestaña flotante (Modal) -->
+  <div class="modal" id="skinModal">
+    <div class="modal-content">
+      <h2>Añadir Nueva Skin</h2>
+      <form id="skinForm">
+        <div class="form-group">
+          <label>Nombre de la Skin</label>
+          <input type="text" id="skinTitle" placeholder="Ej: Blood Devil" required>
+        </div>
+        <div class="form-group">
+          <label>Creador / Referencia</label>
+          <input type="text" id="skinAuthor" placeholder="Ej: Spezi" required>
+        </div>
+        <div class="form-group">
+          <label>Foto de la Skin</label>
+          <input type="file" id="skinImage" accept="image/*" required>
+        </div>
+        <div class="form-group">
+          <label>Código de la Skin (Evrima)</label>
+          <textarea id="skinCode" placeholder="Pega el código generado por el juego..." required></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="closeModalBtn">Cancelar</button>
+          <button type="submit" class="btn-save">Guardar Skin</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <script>
-    function copySkin(code, button) {
+    const modal = document.getElementById('skinModal');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const skinForm = document.getElementById('skinForm');
+    const skinsContainer = document.getElementById('skinsContainer');
+
+    // Abrir y Cerrar Modal
+    openModalBtn.addEventListener('click', () => modal.style.display = 'flex');
+    closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
+
+    // Guardar Skins en el navegador
+    let skins = JSON.parse(localStorage.getItem('evrimaSkins')) || [];
+
+    function renderSkins() {
+      skinsContainer.innerHTML = '';
+      skins.forEach((skin, index) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <img src="${skin.image}" alt="${skin.title}">
+          <div class="info">
+            <div>
+              <div class="title">${skin.title}</div>
+              <div class="author">by ${skin.author}</div>
+            </div>
+            <button class="copy-btn" onclick="copyCode('${encodeURIComponent(skin.code)}', this)">Copy Code</button>
+          </div>
+        `;
+        skinsContainer.appendChild(card);
+      });
+    }
+
+    // Procesar envío del formulario
+    skinForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('skinImage');
+      const file = fileInput.files[0];
+      
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const newSkin = {
+            title: document.getElementById('skinTitle').value,
+            author: document.getElementById('skinAuthor').value,
+            code: document.getElementById('skinCode').value,
+            image: e.target.result // Convierte la imagen a formato para almacenamiento local
+          };
+
+          skins.push(newSkin);
+          localStorage.setItem('evrimaSkins', JSON.stringify(skins));
+          renderSkins();
+          
+          skinForm.reset();
+          modal.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Función de Copiar Código
+    function copyCode(encodedCode, button) {
+      const code = decodeURIComponent(encodedCode);
       navigator.clipboard.writeText(code).then(() => {
         const originalText = button.innerText;
         button.innerText = '¡Copiado!';
-        setTimeout(() => button.innerText = originalText, 1500);
+        button.style.background = '#28a745';
+        setTimeout(() => {
+          button.innerText = originalText;
+          button.style.background = '#25252b';
+        }, 1500);
       });
     }
+
+    // Cargar tarjetas iniciales
+    renderSkins();
   </script>
 </body>
 </html>
