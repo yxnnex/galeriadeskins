@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mis skins</title>
-  <!-- Fuente tipográfica moderna -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -20,7 +19,6 @@
       min-height: 100vh;
     }
 
-    /* Título Centrado */
     header { 
       text-align: center; 
       margin-bottom: 40px; 
@@ -33,7 +31,6 @@
       color: #ffffff;
     }
 
-    /* Grilla de Galería */
     .grid { 
       display: grid; 
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
@@ -42,9 +39,8 @@
       margin: 0 auto;
     }
 
-    /* UI Transparente Cuadriculada (Glassmorphism) con esquinas redondeadas */
     .card { 
-      background: rgba(25d, 25, 30, 0.55); 
+      background: rgba(25, 25, 30, 0.55); 
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-radius: 16px; 
@@ -52,20 +48,71 @@
       border: 1px solid rgba(255, 255, 255, 0.1); 
       display: flex; 
       flex-direction: column;
+      position: relative;
       transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.3s;
     }
 
-    /* Animación al pasar el mouse por la tarjeta */
     .card:hover {
-      transform: scale(1.05);
+      transform: scale(1.03);
       border-color: rgba(40, 167, 69, 0.5);
     }
+
+    /* Menú de opciones (Tres Puntos) */
+    .card-menu-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      backdrop-filter: blur(4px);
+      z-index: 2;
+    }
+
+    .card-menu-btn:hover { background: rgba(0,0,0,0.9); }
+
+    .card-menu-dropdown {
+      display: none;
+      position: absolute;
+      top: 48px;
+      right: 10px;
+      background: rgba(20, 20, 25, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      overflow: hidden;
+      z-index: 10;
+      backdrop-filter: blur(8px);
+    }
+
+    .card-menu-dropdown button {
+      display: block;
+      width: 100%;
+      padding: 8px 16px;
+      background: none;
+      border: none;
+      color: #fff;
+      text-align: left;
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .card-menu-dropdown button:hover { background: rgba(255, 255, 255, 0.1); }
+    .card-menu-dropdown button.delete-btn:hover { background: rgba(220, 53, 69, 0.3); color: #ff6b6b; }
 
     .card img { 
       width: 100%; 
       height: 160px; 
       object-fit: cover; 
-      background: #000000; 
+      background: #111; 
     }
 
     .info { 
@@ -103,7 +150,6 @@
       border-color: #28a745; 
     }
 
-    /* Botón Flotante + en forma de burbuja */
     .add-btn { 
       position: fixed;
       bottom: 30px;
@@ -129,7 +175,6 @@
       background: #218838;
     }
 
-    /* Modal / Ventana Transparente */
     .modal { 
       display: none; 
       position: fixed; 
@@ -212,21 +257,23 @@
     <div class="loading-msg">Cargando skins...</div>
   </div>
 
-  <!-- Botón Burbuja Flotante (+) -->
   <button class="add-btn" id="openModalBtn" title="Añadir Skin">+</button>
 
   <!-- Modal / Formulario -->
   <div class="modal" id="skinModal">
     <div class="modal-content">
-      <h2>Añadir Nueva Skin</h2>
+      <h2 id="modalTitle">Añadir Nueva Skin</h2>
       <form id="skinForm">
+        <input type="hidden" id="editingSkinId" value="">
+        <input type="hidden" id="existingImageUrl" value="">
+        
         <div class="form-group">
           <label>Nombre de la Skin</label>
           <input type="text" id="skinTitle" placeholder="Ej: Blood Devil" required>
         </div>
         <div class="form-group">
-          <label>Foto de la Skin</label>
-          <input type="file" id="skinImage" accept="image/*" required>
+          <label>Foto de la Skin (Opcional)</label>
+          <input type="file" id="skinImage" accept="image/*">
         </div>
         <div class="form-group">
           <label>Código de la Skin (Evrima)</label>
@@ -243,10 +290,15 @@
   <!-- SDKs de Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-    // Configuracion de tu proyecto Firebase
+    // 🔑 CLAVE SECRETA PARA EDITAR / ELIMINAR (Cámbiala por la que tú quieras)
+    const ADMIN_PIN = "1234"; 
+    
+    // Imagen por defecto si no subes foto
+    const DEFAULT_IMAGE = "https://via.placeholder.com/300x160/111115/888888?text=Sin+Foto";
+
     const firebaseConfig = {
       apiKey: "AIzaSyDpy6CtKqXbqPUhuyVRv6NvQZkwfv-i5U4",
       authDomain: "evrima-skins.firebaseapp.com",
@@ -257,20 +309,19 @@
       measurementId: "G-Y374SVYG8V"
     };
 
-    // Inicializar Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // Elementos DOM
     const modal = document.getElementById('skinModal');
     const openModalBtn = document.getElementById('openModalBtn');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const skinForm = document.getElementById('skinForm');
     const skinsContainer = document.getElementById('skinsContainer');
     const saveBtn = document.getElementById('saveBtn');
+    const modalTitle = document.getElementById('modalTitle');
 
-    // Generador de sonido "Tic" al pasar el mouse por el botón +
+    // Generador de sonido "Tic"
     const playTicSound = () => {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const osc = audioCtx.createOscillator();
@@ -286,10 +337,17 @@
     };
 
     openModalBtn.addEventListener('mouseenter', playTicSound);
-    openModalBtn.addEventListener('click', () => modal.style.display = 'flex');
+    openModalBtn.addEventListener('click', () => {
+      skinForm.reset();
+      document.getElementById('editingSkinId').value = '';
+      document.getElementById('existingImageUrl').value = '';
+      modalTitle.innerText = "Añadir Nueva Skin";
+      modal.style.display = 'flex';
+    });
+
     closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
 
-    // Cargar skins desde Firestore
+    // Cargar skins en tiempo real
     const q = query(collection(db, "skins"), orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
       skinsContainer.innerHTML = '';
@@ -298,19 +356,24 @@
         return;
       }
       
-      snapshot.forEach((doc) => {
-        const skin = doc.data();
+      snapshot.forEach((documento) => {
+        const skin = documento.data();
+        const id = documento.id;
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <img src="${skin.imageUrl}" alt="${skin.title}">
+          <button class="card-menu-btn" onclick="toggleMenu('${id}')">⋮</button>
+          <div class="card-menu-dropdown" id="menu-${id}">
+            <button onclick="editSkin('${id}', \`${skin.title}\`, \`${skin.code}\`, '${skin.imageUrl}')">Editar</button>
+            <button class="delete-btn" onclick="deleteSkin('${id}')">Eliminar</button>
+          </div>
+          <img src="${skin.imageUrl || DEFAULT_IMAGE}" alt="${skin.title}">
           <div class="info">
             <div class="title">${skin.title}</div>
             <button class="copy-btn">Copy Code</button>
           </div>
         `;
 
-        // Evento botón copiar
         const copyBtn = card.querySelector('.copy-btn');
         copyBtn.addEventListener('click', () => {
           navigator.clipboard.writeText(skin.code).then(() => {
@@ -328,34 +391,90 @@
       });
     });
 
-    // Subir skin
+    // Desplegar menú de 3 puntos
+    window.toggleMenu = (id) => {
+      const dropdown = document.getElementById(`menu-${id}`);
+      const isVisible = dropdown.style.display === 'block';
+      document.querySelectorAll('.card-menu-dropdown').forEach(d => d.style.display = 'none');
+      dropdown.style.display = isVisible ? 'none' : 'block';
+    };
+
+    // Cerrar menús al hacer clic fuera
+    document.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('card-menu-btn')) {
+        document.querySelectorAll('.card-menu-dropdown').forEach(d => d.style.display = 'none');
+      }
+    });
+
+    // Función para Editar
+    window.editSkin = (id, title, code, imageUrl) => {
+      const pass = prompt("Introduce tu clave para editar:");
+      if (pass !== ADMIN_PIN) return alert("Clave incorrecta.");
+
+      document.getElementById('editingSkinId').value = id;
+      document.getElementById('skinTitle').value = title;
+      document.getElementById('skinCode').value = code;
+      document.getElementById('existingImageUrl').value = imageUrl;
+
+      modalTitle.innerText = "Editar Skin";
+      modal.style.display = 'flex';
+    };
+
+    // Función para Eliminar
+    window.deleteSkin = async (id) => {
+      const pass = prompt("Introduce tu clave para eliminar:");
+      if (pass !== ADMIN_PIN) return alert("Clave incorrecta.");
+
+      if (confirm("¿Seguro que quieres eliminar esta skin?")) {
+        try {
+          await deleteDoc(doc(db, "skins", id));
+        } catch (error) {
+          alert("Error al eliminar la skin.");
+        }
+      }
+    };
+
+    // Guardar (Crear o Actualizar)
     skinForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      const editingId = document.getElementById('editingSkinId').value;
       const fileInput = document.getElementById('skinImage');
       const file = fileInput.files[0];
-      if (!file) return;
-
-      saveBtn.innerText = "Subiendo...";
+      
+      saveBtn.innerText = "Guardando...";
       saveBtn.disabled = true;
 
       try {
-        const storageRef = ref(storage, 'skins/' + Date.now() + '_' + file.name);
-        await uploadBytes(storageRef, file);
-        const imageUrl = await getDownloadURL(storageRef);
+        let imageUrl = document.getElementById('existingImageUrl').value || DEFAULT_IMAGE;
 
-        await addDoc(collection(db, "skins"), {
+        // Subir foto nueva solo si seleccionó un archivo
+        if (file) {
+          const storageRef = ref(storage, 'skins/' + Date.now() + '_' + file.name);
+          await uploadBytes(storageRef, file);
+          imageUrl = await getDownloadURL(storageRef);
+        }
+
+        const skinData = {
           title: document.getElementById('skinTitle').value,
           code: document.getElementById('skinCode').value,
           imageUrl: imageUrl,
-          createdAt: new Date()
-        });
+        };
+
+        if (editingId) {
+          // Actualizar skin existente
+          await updateDoc(doc(db, "skins", editingId), skinData);
+        } else {
+          // Crear skin nueva
+          skinData.createdAt = new Date();
+          await addDoc(collection(db, "skins"), skinData);
+        }
 
         skinForm.reset();
         modal.style.display = 'none';
       } catch (error) {
-        console.error("Error al subir:", error);
-        alert("Error al subir la skin.");
+        console.error("Error:", error);
+        alert("Ocurrió un error al guardar.");
       } finally {
         saveBtn.innerText = "Guardar Skin";
         saveBtn.disabled = false;
